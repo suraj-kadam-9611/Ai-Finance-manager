@@ -47,7 +47,6 @@ python main.py
 ## 📈 Future Improvements
 
 * Integrate ML for better goal prediction
-* Add charts with Plotly/Chart.js
 * Deploy on Render or other platforms
 
 ---
