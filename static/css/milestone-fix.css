@@ -1,0 +1,59 @@
+/* Enhanced Milestone Status Styling for Correct Visual Indication */
+
+/* For milestones that were celebrated but are no longer at that percentage */
+.milestone-indicator.celebrated:not(.reached) .milestone-icon {
+    background-color: #2c2c40;
+    color: #f5f5f5;
+    border-color: #9575cd;
+}
+
+/* The milestone bar indicator - show the colored line only for reached milestones */
+.milestone-indicator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #2c2c40;
+}
+
+.milestone-indicator.reached::before {
+    background-color: #4ade80;
+}
+
+/* For milestones that are both currently reached AND were previously celebrated */
+.milestone-indicator.reached.celebrated .milestone-icon {
+    background-color: #9575cd;
+    color: #0f0f17;
+    border-color: #9575cd;
+    transform: scale(1.1);
+}
+
+/* Same rules for the progress modal */
+#progressModal .milestone-indicator.celebrated:not(.reached) .milestone-icon {
+    background-color: #2c2c40;
+    color: #f5f5f5;
+    border-color: #9575cd;
+}
+
+#progressModal .milestone-indicator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #2c2c40;
+}
+
+#progressModal .milestone-indicator.reached::before {
+    background-color: #4ade80;
+}
+
+#progressModal .milestone-indicator.reached.celebrated .milestone-icon {
+    background-color: #9575cd;
+    color: #0f0f17;
+    border-color: #9575cd;
+    transform: scale(1.1);
+}

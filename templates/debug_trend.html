@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trend Chart Debug</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+            margin: 20px auto;
+            position: relative;
+        }
+        .actions {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #log {
+            width: 100%;
+            max-width: 800px;
+            height: 200px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Trend Chart Debug</h1>
+    
+    <div class="actions">
+        <button id="weekBtn" data-range="weekly">Week</button>
+        <button id="monthBtn" data-range="monthly" class="active">Month</button>
+        <button id="yearBtn" data-range="yearly">Year</button>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="trendChart"></canvas>
+    </div>
+    
+    <h3>Debug Log:</h3>
+    <div id="log"></div>
+    
+    <script>
+        // For logging
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        // Chart instance
+        let trendChart = null;
+        
+        // Load expense trend data and render chart
+        async function loadExpenseTrend(range = 'monthly') {
+            log(`Loading trend data for range: ${range}`);
+            
+            // Get chart element
+            const trendChartElement = document.getElementById('trendChart');
+            if (!trendChartElement) {
+                log("Error: Chart element not found");
+                return;
+            }
+            
+            const chartContext = trendChartElement.getContext('2d');
+            log("Chart context obtained");
+            
+            try {
+                // Different API endpoints for different ranges
+                let apiUrl = '';
+                
+                if (range === 'yearly') {
+                    apiUrl = '/api/yearly-summary';
+                } else if (range === 'weekly') {
+                    apiUrl = '/api/expense-trend?range=week';
+                } else { // monthly
+                    apiUrl = '/api/expense-trend?range=month';
+                }
+                
+                log(`Fetching data from: ${apiUrl}`);
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    log(`Error: API response not OK (${response.status} ${response.statusText})`);
+                    showEmptyChart();
+                    return;
+                }
+                
+                const data = await response.json();
+                log(`Received data: ${JSON.stringify(data)}`);
+                
+                if (data.success) {
+                    // Process the data based on range
+                    let chartLabels = [];
+                    let chartValues = [];
+                    
+                    if (range === 'yearly') {
+                        // For yearly view, use month names and yearly expense data
+                        chartLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        chartValues = data.expenses || [];
+                        
+                        log(`Yearly data: ${chartValues.join(', ')}`);
+                    } else {
+                        // For weekly or monthly views, use data directly from API
+                        if (!data.labels || !data.values || data.labels.length === 0 || data.values.length === 0) {
+                            log(`No data available for ${range}`);
+                            showEmptyChart();
+                            return;
+                        }
+                        
+                        chartLabels = data.labels;
+                        chartValues = data.values.map(v => parseFloat(v) || 0);
+                        
+                        log(`${range} labels: ${chartLabels.join(', ')}`);
+                        log(`${range} values: ${chartValues.join(', ')}`);
+                    }
+                    
+                    // Clean up any existing chart
+                    if (trendChart) {
+                        log("Destroying existing chart");
+                        trendChart.destroy();
+                        trendChart = null;
+                    }
+                    
+                    // Create new chart
+                    log("Creating new chart");
+                    trendChart = new Chart(chartContext, {
+                        type: 'line',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Expenses',
+                                data: chartValues,
+                                borderColor: '#7e57c2',
+                                backgroundColor: 'rgba(126, 87, 194, 0.1)',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#7e57c2',
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: range === 'yearly' ? 'Yearly Expenses' : 
+                                          range === 'weekly' ? 'Weekly Expenses' : 'Monthly Expenses',
+                                    font: {
+                                        size: 16,
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    
+                    log("Chart created successfully");
+                } else {
+                    log(`Error: ${data.message || 'Unknown error'}`);
+                    showEmptyChart();
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`);
+                showEmptyChart();
+            }
+        }
+        
+        function showEmptyChart() {
+            log("Showing empty chart state");
+            
+            // Clean up existing chart
+            if (trendChart) {
+                trendChart.destroy();
+                trendChart = null;
+            }
+            
+            const chartContext = document.getElementById('trendChart').getContext('2d');
+            
+            // Create empty chart with a "no data" message
+            trendChart = new Chart(chartContext, {
+                type: 'line',
+                data: {
+                    labels: ['No Data'],
+                    datasets: [{
+                        data: [0],
+                        borderColor: '#cccccc',
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                        borderDash: [5, 5]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'No expense data available for this period',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            display: false
+                        },
+                        x: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            log("Page loaded, initializing");
+            
+            // Get buttons
+            const weekBtn = document.getElementById('weekBtn');
+            const monthBtn = document.getElementById('monthBtn');
+            const yearBtn = document.getElementById('yearBtn');
+            
+            // Add click event listeners
+            weekBtn.addEventListener('click', () => {
+                log("Week button clicked");
+                weekBtn.classList.add('active');
+                monthBtn.classList.remove('active');
+                yearBtn.classList.remove('active');
+                loadExpenseTrend('weekly');
+            });
+            
+            monthBtn.addEventListener('click', () => {
+                log("Month button clicked");
+                weekBtn.classList.remove('active');
+                monthBtn.classList.add('active');
+                yearBtn.classList.remove('active');
+                loadExpenseTrend('monthly');
+            });
+            
+            yearBtn.addEventListener('click', () => {
+                log("Year button clicked");
+                weekBtn.classList.remove('active');
+                monthBtn.classList.remove('active');
+                yearBtn.classList.add('active');
+                loadExpenseTrend('yearly');
+            });
+            
+            // Load initial chart (monthly by default)
+            loadExpenseTrend('monthly');
+        });
+    </script>
+</body>
+</html> 

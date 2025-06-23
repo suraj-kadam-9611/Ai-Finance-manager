@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% if css_files %}
+        {% for css_file in css_files %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/' + css_file) }}">
+        {% endfor %}
+    {% endif %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown-fix.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/milestone-fix.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom_fixes.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notification-override.css') }}">
+    
+    <style>
+        /* Force styling for financial profile inputs */
+        #profileForm input[type="text"],
+        #profileForm input[name="monthlyIncome"],
+        #profileForm input[name="savingsGoal"],
+        #profileForm input[name="emergencyFund"] {
+            background-color: #e7eaf6 !important;
+            color: #333 !important;
+        }
+        
+        /* Force center alignment for empty state content */
+        .empty-state {
+            text-align: center !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            padding: 40px 0 !important;
+        }
+        
+        .empty-state-content {
+            margin: 0 auto !important;
+            text-align: center !important;
+            max-width: 300px !important;
+        }
+    </style>
+    
+    {% block head_scripts %}{% endblock %}
+</head>
+<body data-theme="dark">
+    <header class="header">
+        <div class="header-brand">
+            <img src="{{ url_for('static', filename='img/piggy bank.svg') }}" alt="Financial Assistant" class="header-logo">
+            <h1>AI Financial Assistant</h1>
+        </div>
+        
+        <nav class="nav-tabs">
+            <a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="{{ url_for('expenses') }}" class="{% if request.endpoint == 'expenses' %}active{% endif %}">Expenses</a>
+            <a href="{{ url_for('goals') }}" class="{% if request.endpoint == 'goals' %}active{% endif %}">Goals</a>
+        </nav>
+
+        <div class="user-actions">
+            <div class="theme-toggle">
+                <button class="theme-btn" data-theme="light">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <button class="theme-btn" data-theme="dark">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Profile Dropdown -->
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileDropdownBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+                <div class="dropdown-menu" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <p class="user-name">{{ session.username }}</p>
+                    </div>
+                    <div class="dropdown-content">
+                        <a href="#" id="profileUpdateBtn" class="dropdown-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Update Profile
+                        </a>
+                        <a href="#" id="accountDetailsBtn" class="dropdown-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            Account Details
+                        </a>
+                        <a href="#" id="achievementsBtn" class="dropdown-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                            Achievements
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('logout') }}" class="dropdown-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Mobile Overlay -->
+    <div class="overlay"></div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Main Container -->
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Profile Setup Modal -->
+    <div id="profileSetup" class="profile-setup" style="display: none;">
+        <div class="profile-setup-content">
+            <div class="profile-setup-header">
+                <h2>Complete Your Financial Profile</h2>
+                <button class="close-profile-setup">&times;</button>
+            </div>
+            <p>Please provide some basic financial information to receive personalized recommendations.</p>
+            
+            <form id="profileForm" class="setup-form">
+                <div class="form-group">
+                    <label for="currency">Currency</label>
+                    <select id="currency" name="currency" required>
+                        <option value="INR" selected>Indian Rupee (₹)</option>
+                        <option value="USD">US Dollar ($)</option>
+                        <option value="EUR">Euro (€)</option>
+                        <option value="GBP">British Pound (£)</option>
+                        <option value="JPY">Japanese Yen (¥)</option>
+                        <option value="CAD">Canadian Dollar (CA$)</option>
+                        <option value="AUD">Australian Dollar (A$)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="monthlyIncome">Monthly Income</label>
+                    <input type="text" id="monthlyIncome" name="monthlyIncome" placeholder="₹ Enter amount" required style="background-color: #e7eaf6 !important;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="savingsGoal">Monthly Savings Goal</label>
+                    <input type="text" id="savingsGoal" name="savingsGoal" placeholder="₹ Enter amount" required style="background-color: #e7eaf6 !important;">
+                </div>
+                
+                <div class="form-group">
+                    <label for="emergencyFund">Emergency Fund Target</label>
+                    <input type="text" id="emergencyFund" name="emergencyFund" placeholder="₹ Enter amount" required style="background-color: #e7eaf6 !important;">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="button">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Account Details Modal -->
+    <div id="accountDetailsModal" class="profile-setup" style="display: none;">
+        <div class="profile-setup-content">
+            <div class="profile-setup-header">
+                <h2>Account Details</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="account-details-content">
+                <form id="accountDetailsForm" class="setup-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mobile">Mobile Number</label>
+                        <input type="text" id="mobile" name="mobile" required>
+                    </div>
+                    
+                    <div class="form-divider"></div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">New Password (Leave blank to keep current)</label>
+                        <input type="password" id="newPassword" name="newPassword">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="button">Save Account Details</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Achievements Modal -->
+    <div id="achievementsModal" class="profile-setup" style="display: none;">
+        <div class="profile-setup-content achievements-content">
+            <div class="profile-setup-header">
+                <h2>Your Achievements</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div class="achievements-container">
+                <div class="achievements-summary">
+                    <div class="achievement-stat">
+                        <span class="achievement-number" id="totalAchievements">0</span>
+                        <span class="achievement-label">Unlocked</span>
+                    </div>
+                    <div class="achievement-stat">
+                        <span class="achievement-number" id="achievementPoints">0</span>
+                        <span class="achievement-label">Points</span>
+                    </div>
+                    <div class="achievement-stat">
+                        <span class="achievement-number" id="nextAchievement">0</span>
+                        <span class="achievement-label">In Progress</span>
+                    </div>
+                </div>
+                
+                <div class="achievements-list" id="achievementsList">
+                    <!-- Achievements will be loaded dynamically -->
+                    <div class="loading-achievements">Loading your achievements...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/profile-fix-updated.js') }}"></script>
+    {% block scripts %}{% endblock %}
+    
+    <script>
+        // Force background color for profile inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileInputs = document.querySelectorAll('#profileForm input[type="text"]');
+            profileInputs.forEach(input => {
+                input.style.backgroundColor = '#e7eaf6';
+            });
+            
+            // Open modal event - also set background colors
+            const showProfileLink = document.getElementById('showProfileSetup');
+            if (showProfileLink) {
+                showProfileLink.addEventListener('click', function() {
+                    setTimeout(() => {
+                        const profileInputs = document.querySelectorAll('#profileForm input[type="text"]');
+                        profileInputs.forEach(input => {
+                            input.style.backgroundColor = '#e7eaf6';
+                        });
+                    }, 100);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

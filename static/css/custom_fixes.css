@@ -1,0 +1,77 @@
+/* Custom styling fixes for specific elements */
+
+/* Center the "No recent expenses found" TD element */
+td.empty-state,
+td[colspan="5"].empty-state,
+td[colspan="5"] {
+    text-align: center !important;
+    display: table-cell !important;
+    margin: 0 auto !important;
+    padding: 40px 0 !important;
+    width: 100% !important;
+    font-weight: bold !important;
+    vertical-align: middle !important;
+    color: #ffffff !important;
+    height: 150px !important;
+}
+
+/* Updated celebration goal div color and styles */
+.celebration-goal {
+    background-color: #1e1e2e !important;
+    border: 1px solid #333344 !important;
+    border-radius: 10px !important;
+    padding: 1.25rem !important;
+    margin-top: 1.5rem !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Fix Continue button size and styling */
+.celebration-footer .button,
+.button.close-modal {
+    padding: 12px 32px !important;
+    width: auto !important; /* Override fixed width */
+    min-width: 150px !important;
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2) !important;
+    background-color: #7e57c2 !important;
+    color: white !important;
+    cursor: pointer !important;
+}
+
+.celebration-footer .button:hover,
+.button.close-modal:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25) !important;
+    background-color: #9575cd !important;
+}
+
+/* Style the notification success message with black background and green text */
+.notification.notification-success {
+    background-color: #000000 !important;
+    color: #00ff00 !important;
+    border-left-color: #00ff00 !important;
+}
+
+/* Ensure notification display works correctly */
+.notification {
+    z-index: 9999;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-20px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.notification.show {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+}

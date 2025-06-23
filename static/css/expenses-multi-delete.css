@@ -1,0 +1,178 @@
+/* Custom Delete Modal & Multi-select styles */
+
+/* Modal show/hide styles */
+.modal.show {
+    display: flex !important;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Custom checkbox styling */
+.checkbox-custom {
+    position: relative;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--card-bg);
+    cursor: pointer;
+    margin-right: 8px;
+    transition: all 0.2s ease;
+}
+
+.checkbox-custom:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.checkbox-custom:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-custom:hover {
+    border-color: var(--primary);
+}
+
+/* Checkbox column styling */
+.checkbox-column {
+    width: 30px;
+    text-align: center;
+}
+
+/* Bulk action controls */
+.bulk-action-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+.selection-controls {
+    display: flex;
+    align-items: center;
+}
+
+.select-all-label {
+    font-size: 14px;
+    margin-right: 20px;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.bulk-action-btn {
+    display: flex;
+    align-items: center;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bulk-action-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.bulk-action-btn:not(:disabled):hover {
+    background-color: var(--input-bg);
+}
+
+#selectedCountBadge {
+    margin-right: 5px;
+    font-weight: bold;
+}
+
+/* Delete confirmation modal styling */
+.delete-confirm-content {
+    max-width: 450px;
+}
+
+.delete-warning-icon {
+    margin: 10px auto 20px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(239, 68, 68, 0.1);
+    border-radius: 50%;
+    padding: 15px;
+}
+
+.delete-warning-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.delete-note {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+/* Delete button styling */
+.delete-button {
+    background-color: var(--danger);
+}
+
+.delete-button:hover {
+    background-color: #d32f2f;
+}
+
+/* Bulk actions modal styling */
+.bulk-actions-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.bulk-actions-buttons button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Row selection styles */
+.expense-row.selected {
+    background-color: rgba(var(--primary-rgb), 0.1);
+}
+
+.expense-row {
+    transition: background-color 0.2s ease;
+}
+
+/* Checkbox animation */
+@keyframes checkmark {
+    0% {
+        transform: scale(0) rotate(45deg);
+    }
+    100% {
+        transform: scale(1) rotate(45deg);
+    }
+}

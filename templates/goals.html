@@ -1,0 +1,302 @@
+{% extends "layout.html" %}
+
+{% block title %}Financial Goals | AI Financial Assistant{% endblock %}
+
+{% block head_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Goals Header Section -->
+<div class="goals-header">
+    <h2>Financial Goals</h2>
+    <button id="addGoalBtn" class="button">+ Add New Goal</button>
+</div>
+
+<!-- Goals Summary Cards -->
+<div class="goals-summary">
+    <div class="summary-card">
+        <div class="summary-icon savings">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-3.5c1-.5 2-1 2-2.5 0-.9 0-3.5-1-5.5"></path>
+                <path d="M2 9v1c0 1.1.9 2 2 2h1"></path>
+                <path d="M16 11h0"></path>
+            </svg>
+        </div>
+        <div class="summary-content">
+            <h3>Total Savings Goals</h3>
+            <div class="summary-value" id="totalSavingsGoals">0</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon debt">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+            </svg>
+        </div>
+        <div class="summary-content">
+            <h3>Debt Reduction Goals</h3>
+            <div class="summary-value" id="totalDebtGoals">0</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon milestone">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+            </svg>
+        </div>
+        <div class="summary-content">
+            <h3>Milestones Reached</h3>
+            <div class="summary-value" id="totalMilestones">0</div>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon completed">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        </div>
+        <div class="summary-content">
+            <h3>Completed Goals</h3>
+            <div class="summary-value" id="completedGoals">0</div>
+        </div>
+    </div>
+</div>
+
+<!-- Goals Filters -->
+<div class="goals-filters">
+    <div class="filter-group">
+        <label for="goalTypeFilter">Filter by Type:</label>
+        <select id="goalTypeFilter">
+            <option value="all">All Types</option>
+            <option value="savings">Savings</option>
+            <option value="debt_reduction">Debt Reduction</option>
+            <option value="investment">Investment</option>
+            <option value="emergency_fund">Emergency Fund</option>
+            <option value="retirement">Retirement</option>
+            <option value="other">Other</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label for="goalStatusFilter">Filter by Status:</label>
+        <select id="goalStatusFilter">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="on_track">On Track</option>
+            <option value="at_risk">At Risk</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label for="goalSort">Sort by:</label>
+        <select id="goalSort">
+            <option value="priority">Priority (Highest First)</option>
+            <option value="date-asc">Target Date (Nearest First)</option>
+            <option value="date-desc">Target Date (Furthest First)</option>
+            <option value="progress-asc">Progress (Lowest First)</option>
+            <option value="progress-desc">Progress (Highest First)</option>
+        </select>
+    </div>
+</div>
+
+<!-- Goals List -->
+<div class="goals-list" id="goalsList">
+    <!-- Goals will be loaded dynamically -->
+    <div class="empty-goals-placeholder">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <p>You don't have any financial goals yet. Start by adding your first goal!</p>
+        <button id="addFirstGoalBtn" class="button">+ Add Your First Goal</button>
+    </div>
+</div>
+
+<!-- Goal Template (Hidden) -->
+<div id="goalTemplate" class="goal-card" style="display: none;">
+    <div class="goal-header">
+        <h3 class="goal-title"></h3>
+        <div class="goal-priority"></div>
+    </div>
+    <div class="goal-details">
+        <div class="goal-info">
+            <div class="goal-type"></div>
+            <div class="goal-target">Target: <span class="target-amount"></span></div>
+            <div class="goal-current">Current: <span class="current-amount"></span></div>
+            <div class="goal-date">Target Date: <span class="target-date"></span></div>
+            <div class="goal-remaining">Days Remaining: <span class="days-remaining"></span></div>
+        </div>
+        <div class="goal-progress">
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <div class="progress-text">
+                <span class="progress-percentage"></span>
+                <span class="on-track-indicator"></span>
+            </div>
+        </div>
+    </div>
+    <div class="goal-description"></div>
+    <div class="goal-actions">
+        <button class="update-goal-btn">Update Progress</button>
+        <button class="edit-goal-btn">Edit</button>
+        <button class="delete-goal-btn">Delete</button>
+    </div>
+</div>
+
+<!-- Add/Edit Goal Modal -->
+<div id="goalModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="goalModalTitle">Add New Goal</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="goalForm">
+                <input type="hidden" id="goalId">
+                
+                <div class="form-group">
+                    <label for="goalTitle">Goal Title*</label>
+                    <input type="text" id="goalTitle" name="goalTitle" placeholder="e.g., New Car, Emergency Fund" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goalType">Goal Type*</label>
+                    <select id="goalType" name="goalType" required>
+                        <option value="" disabled selected>Select a goal type</option>
+                        <option value="savings">Savings</option>
+                        <option value="debt_reduction">Debt Reduction</option>
+                        <option value="investment">Investment</option>
+                        <option value="emergency_fund">Emergency Fund</option>
+                        <option value="retirement">Retirement</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="targetAmount">Target Amount*</label>
+                        <input type="number" id="targetAmount" name="targetAmount" placeholder="0.00" min="0.01" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group half">
+                        <label for="currentAmount">Current Amount</label>
+                        <input type="number" id="currentAmount" name="currentAmount" placeholder="0.00" min="0" step="0.01" value="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="targetDate">Target Date*</label>
+                    <input type="date" id="targetDate" name="targetDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goalPriority">Priority</label>
+                    <select id="goalPriority" name="goalPriority">
+                        <option value="1">Highest</option>
+                        <option value="2">High</option>
+                        <option value="3" selected>Medium</option>
+                        <option value="4">Low</option>
+                        <option value="5">Lowest</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="goalDescription">Description (Optional)</label>
+                    <textarea id="goalDescription" name="goalDescription" placeholder="Why is this goal important to you?" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="saveGoalBtn" class="button">Save Goal</button>
+            <button class="button button-secondary close-modal">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Update Progress Modal -->
+<div id="progressModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Update Goal Progress</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="goal-progress-summary">
+                <h4 id="progressGoalTitle">Goal Title</h4>
+                <div class="progress-info">
+                    <div class="progress-item">
+                        <span class="label">Target:</span>
+                        <span id="progressTargetAmount" class="value">0.00</span>
+                    </div>
+                    <div class="progress-item">
+                        <span class="label">Current:</span>
+                        <span id="progressCurrentAmount" class="value">0.00</span>
+                    </div>
+                    <div class="progress-item">
+                        <span class="label">Progress:</span>
+                        <span id="progressPercentage" class="value">0%</span>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressBarFill" class="progress-fill"></div>
+                </div>
+            </div>
+            
+            <form id="progressForm">
+                <input type="hidden" id="progressGoalId">
+                
+                <div class="form-group">
+                    <label for="newAmount">New Current Amount*</label>
+                    <input type="number" id="newAmount" name="newAmount" placeholder="0.00" min="0" step="0.01" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Did you reach a milestone?</label>
+                    <div id="milestoneIcons" class="milestone-indicators">
+                        <!-- Will be populated dynamically based on goal progress -->
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="saveProgressBtn" class="button">Update Progress</button>
+        </div>
+    </div>
+</div>
+
+<!-- Milestone Celebration Modal -->
+<div id="celebrationModal" class="modal celebration-modal">
+    <div class="modal-content">
+        <div class="celebration-header">
+            <h3>Congratulations!</h3>
+            <div class="celebration-emoji">🎉</div>
+        </div>
+        <div class="celebration-body">
+            <p id="celebrationMessage">You've reached a milestone in your goal!</p>
+            <div class="celebration-progress">
+                <div class="progress-bar">
+                    <div id="celebrationProgressBar" class="progress-fill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="celebrationPercentage">25%</span> Complete
+                </div>
+            </div>
+            <div class="celebration-goal">
+                <h4 id="celebrationGoalTitle"></h4>
+                <p id="celebrationGoalDetails"></p>
+            </div>
+        </div>
+        <div class="celebration-footer">
+            <button class="button close-modal">Continue</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/goals.js') }}"></script>
+{% endblock %}

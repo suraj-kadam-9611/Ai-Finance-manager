@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard | AI Financial Assistant{% endblock %}
+
+{% block head_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- AI Advice Section -->
+<div class="ai-advice">
+    <img src="{{ url_for('static', filename='img/robot.svg') }}" alt="AI Assistant" class="ai-avatar">
+    <p>Based on your financial patterns, consider allocating 20% of your income to savings this month. Your recent spending trends show an opportunity to increase your emergency fund.</p>
+</div>
+
+<div class="content-grid">
+    <!-- Container 1: Monthly Financial Summary -->
+    <div class="overview-section" style="min-height: 380px;">
+        <div class="overview-header">
+            <h2>Monthly Financial Summary</h2>
+            <div class="currency-display">{{ currency }}</div>
+        </div>
+        
+        {% if monthly_income <= 0 and total_expenses <= 0 %}
+        <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <h3>No financial data available</h3>
+            <p>Please update your profile to get your monthly summary report</p>
+            <button id="updateProfileBtn" class="btn btn-primary">Update Profile</button>
+        </div>
+        {% else %}
+        <div class="chart-container">
+            <canvas id="financialSummaryChart"></canvas>
+        </div>
+        <div class="summary-metrics">
+            <div class="metric-item">
+                <span class="metric-label">Total Expenses</span>
+                <span class="metric-value expense-value">{{ total_expenses|round(2) }}</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Monthly Income</span>
+                <span class="metric-value income-value">{{ monthly_income|round(2) }}</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Savings</span>
+                <span class="metric-value savings-value">{{ total_savings|round(2) }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Container 2: Expense Trend -->
+    <div class="overview-section">
+        <div class="overview-header">
+            <h2>Expense Trend</h2>
+            <div class="period-selector trend-view">
+                <button class="period-button btn btn-text active" data-period="week" data-range="weekly">Week</button>
+                <button class="period-button btn btn-text" data-period="month" data-range="monthly">Month</button>
+                <button class="period-button btn btn-text" data-period="year" data-range="yearly">Year</button>
+            </div>
+        </div>
+        {% if total_expenses <= 0 %}
+        <div class="empty-distribution-message">No expense data available. Add some expenses to see your trend.</div>
+        {% else %}
+        <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Container 3: Recent Expenses -->
+    <div class="overview-section">
+        <div class="overview-header">
+            <h2>Recent Expenses</h2>
+            <a href="/expenses" class="btn btn-text">View All</a>
+        </div>
+        <div class="recent-expenses-list">
+            <table class="expenses-table">
+                <thead>
+                    <tr>
+                        <th>S.No.</th>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th class="amount-column">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="recentExpensesList">
+                    <tr>
+                        <td colspan="5" class="empty-message">No expenses found. Add your first expense to get started.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

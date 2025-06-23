@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test</h1>
+    
+    <div>
+        <h2>Expense Trend API</h2>
+        <button onclick="testAPI('yearly')">Test Yearly</button>
+        <button onclick="testAPI('weekly')">Test Weekly</button>
+        <button onclick="testAPI('monthly')">Test Monthly</button>
+    </div>
+    
+    <div>
+        <h3>Response:</h3>
+        <pre id="response">Click a button to test the API...</pre>
+    </div>
+    
+    <script>
+        async function testAPI(range) {
+            const responseElement = document.getElementById('response');
+            responseElement.textContent = 'Loading...';
+            
+            try {
+                let url;
+                if (range === 'yearly') {
+                    url = '/api/yearly-summary';
+                } else if (range === 'weekly') {
+                    url = '/api/expense-trend?range=week';
+                } else {
+                    url = '/api/expense-trend?range=month';
+                }
+                
+                console.log(`Fetching ${url}`);
+                const response = await fetch(url);
+                console.log(`Response status: ${response.status}`);
+                
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseElement.textContent = `Error: ${error.message}`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html> 

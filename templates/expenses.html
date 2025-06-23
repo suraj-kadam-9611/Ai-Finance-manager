@@ -1,0 +1,256 @@
+{% extends "layout.html" %}
+
+{% block title %}Expenses | AI Financial Assistant{% endblock %}
+
+{% block head_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/expenses-multi-delete.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="expenses-header-section">
+    <h2>Expense Management</h2>
+    <span class="currency-indicator" id="expenseCurrencyDisplay">{{ currency }}</span>
+</div>
+
+<div class="expenses-dashboard">
+    <!-- Add Expense Form Card -->
+    <div class="expense-form">
+        <div class="form-header">
+            <h3>Add New Expense</h3>
+        </div>
+        <form id="expenseForm">
+            <div class="form-group">
+                <label for="amount">Amount</label>
+                <div class="amount-input-wrapper">
+                    <span class="currency-symbol" id="currencySymbol">₹</span>
+                    <input type="number" id="amount" name="amount" placeholder="Enter amount" step="0.01" min="0.01" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                    <option value="" disabled selected>Select category</option>
+                    <option value="Food">Food & Dining</option>
+                    <option value="Transport">Transportation</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Bills">Bills & Utilities</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Description (Optional)</label>
+                <input type="text" id="description" name="description" placeholder="Add a note">
+            </div>
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <button type="submit" class="button">Add Expense</button>
+        </form>
+    </div>
+    
+    <!-- Expense Summary Card -->
+    <div class="expense-summary-card">
+        <div class="summary-header">
+            <h3>Expense Summary</h3>
+        </div>
+        <div class="expense-chart-container">
+            <canvas id="expenseCategoryChart"></canvas>
+        </div>
+        <div class="expense-total">
+            <h4 class="expense-summary">Total Expenses: This Month</h4>
+            <div class="total-amount" id="totalMonthlyExpenses">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Expense Controls -->
+<div class="expense-controls-section">
+    <div class="expense-controls">
+        <div class="expense-filter">
+            <label for="categoryFilter">Filter by Category:</label>
+            <select id="categoryFilter">
+                <option value="all">All Categories</option>
+                <option value="Food">Food & Dining</option>
+                <option value="Transport">Transportation</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Bills">Bills & Utilities</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="expense-date-filter">
+            <label for="dateFilter">Time Period:</label>
+            <select id="dateFilter">
+                <option value="this-month">This Month</option>
+                <option value="last-month">Last Month</option>
+                <option value="3-months">Last 3 Months</option>
+                <option value="6-months">Last 6 Months</option>
+                <option value="this-year">This Year</option>
+                <option value="all">All Time</option>
+            </select>
+        </div>
+        <div class="expense-sort">
+            <label for="expenseSort">Sort by:</label>
+            <select id="expenseSort">
+                <option value="date-desc">Date (Newest First)</option>
+                <option value="date-asc">Date (Oldest First)</option>
+                <option value="amount-desc">Amount (Highest First)</option>
+                <option value="amount-asc">Amount (Lowest First)</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Expenses List -->
+<div class="expenses-list" id="expensesList">
+    <div class="expenses-header">
+        <h3>Expense Transactions</h3>
+    </div>
+    
+    <div class="bulk-action-controls">
+        <div class="selection-controls">
+            <input type="checkbox" id="selectAllExpenses" class="checkbox-custom">
+            <label for="selectAllExpenses" class="select-all-label">Select All</label>
+            <button id="bulkActionBtn" class="bulk-action-btn" disabled>
+                <span id="selectedCountBadge">0</span> Selected
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <table class="expenses-table">
+        <thead>
+            <tr>
+                <th class="checkbox-column">
+                    <input type="checkbox" id="selectAllHeader" class="checkbox-custom">
+                </th>
+                <th>S.No.</th>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th class="amount-column">Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Expenses will be loaded dynamically -->
+        </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    <div class="pagination" id="expensesPagination">
+        <!-- Pagination controls will be added dynamically -->
+    </div>
+</div>
+
+<!-- Edit Expense Modal -->
+<div id="editExpenseModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Expense</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editExpenseForm">
+                <input type="hidden" id="editExpenseId">
+                
+                <div class="form-group">
+                    <label for="editAmount">Amount</label>
+                    <div class="amount-input-wrapper">
+                        <span class="currency-symbol" id="editCurrencySymbol">₹</span>
+                        <input type="number" id="editAmount" name="editAmount" placeholder="Enter amount" step="0.01" min="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editCategory">Category</label>
+                    <select id="editCategory" name="editCategory" required>
+                        <option value="Food">Food & Dining</option>
+                        <option value="Transport">Transportation</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Bills">Bills & Utilities</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editDescription">Description (Optional)</label>
+                    <input type="text" id="editDescription" name="editDescription" placeholder="Add a note">
+                </div>
+                <div class="form-group">
+                    <label for="editDate">Date</label>
+                    <input type="date" id="editDate" name="editDate" required>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="saveEditBtn" class="button">Save Changes</button>
+            <button class="button button-secondary close-modal">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="modal">
+    <div class="modal-content delete-confirm-content">
+        <div class="modal-header">
+            <h3>Confirm Deletion</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body text-center">
+            <div class="delete-warning-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <p id="deleteConfirmMessage">Are you sure you want to delete this expense?</p>
+            <p class="delete-note">This action cannot be undone.</p>
+            <input type="hidden" id="deleteExpenseId">
+            <!-- For multiple delete -->
+            <input type="hidden" id="deleteMultiple" value="false">
+        </div>
+        <div class="modal-footer justify-center">
+            <button id="confirmDeleteBtn" class="button delete-button">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions Modal -->
+<div id="bulkActionsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Bulk Actions</h3>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body text-center">
+            <p id="bulkActionMessage"><span id="selectedCount">0</span> expenses selected</p>
+            <div class="bulk-actions-buttons">
+                <button id="deleteSelectedBtn" class="button delete-button" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Delete Selected
+                </button>
+                <button id="clearSelectionBtn" class="button button-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Clear Selection
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/expenses.js') }}"></script>
+{% endblock %}

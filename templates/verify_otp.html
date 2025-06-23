@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP | AI Financial Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .otp-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .otp-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 4px;
+        }
+        .form-description {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .resend-timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body data-page="login">
+    <div class="theme-toggle-login" id="themeToggle">
+        <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </div>
+    <div class="container">
+        <div class="form-container">
+            <div class="message-box">
+                <div class="icon-container">
+                    <img src="{{ url_for('static', filename='img/robot.svg') }}" alt="AI Assistant" class="logo-small floating-animation">
+                </div>
+                <p>Please enter the One-Time Password (OTP) sent to your registered mobile number.</p>
+            </div>
+
+            <div class="flashed-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <h3>Verify OTP</h3>
+            <p class="form-description">A 6-digit code has been sent to your mobile number. Enter the code below to verify your identity.</p>
+
+            <form id="otpForm" action="{{ url_for('verify_otp') }}" method="POST">
+                <input type="hidden" id="fullOtp" name="otp">
+                
+                <div class="otp-container">
+                    <input type="text" class="otp-input" maxlength="1" autofocus>
+                    <input type="text" class="otp-input" maxlength="1">
+                    <input type="text" class="otp-input" maxlength="1">
+                    <input type="text" class="otp-input" maxlength="1">
+                    <input type="text" class="otp-input" maxlength="1">
+                    <input type="text" class="otp-input" maxlength="1">
+                </div>
+                
+                <div class="resend-timer">
+                    <span id="timer">Resend OTP in <span id="countdown">03:00</span></span>
+                    <a href="#" id="resendLink" style="display: none; margin-left: 10px;">Resend OTP</a>
+                </div>
+                
+                <button type="submit" class="submit-btn" style="margin-top: 20px;">Verify OTP</button>
+                <div class="back-to-login" style="text-align: center; margin-top: 15px;">
+                    <a href="{{ url_for('login') }}">Back to Login</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="branding">
+            <img src="{{ url_for('static', filename='img/piggy bank.svg') }}" alt="Financial Assistant" class="logo-large floating-animation">
+            <h1>AI Financial Assistant</h1>
+            <p>Take control of your finances with our intelligent assistant. Track expenses, set goals, and receive personalized advice to improve your financial health.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlElement = document.documentElement;
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                htmlElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                htmlElement.setAttribute('data-theme', 'dark');
+            }
+            
+            // Toggle theme
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+                const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+
+            // Handle OTP input
+            const otpInputs = document.querySelectorAll('.otp-input');
+            const otpForm = document.getElementById('otpForm');
+            const fullOtpInput = document.getElementById('fullOtp');
+            
+            // Function to collect OTP digits
+            const collectOtp = () => {
+                let otp = '';
+                otpInputs.forEach(input => {
+                    otp += input.value;
+                });
+                return otp;
+            };
+            
+            // Auto-focus next input
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    // Allow only numbers
+                    input.value = input.value.replace(/[^0-9]/g, '');
+                    
+                    // Auto focus next input
+                    if (input.value && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                    
+                    // Store full OTP in hidden input
+                    fullOtpInput.value = collectOtp();
+                });
+                
+                // Handle backspace
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+            });
+            
+            // Submit form when all digits are entered
+            otpInputs[otpInputs.length - 1].addEventListener('input', () => {
+                if (collectOtp().length === 6) {
+                    fullOtpInput.value = collectOtp();
+                    // Allow manual submission
+                }
+            });
+            
+            // Countdown timer
+            const countdownEl = document.getElementById('countdown');
+            const timerEl = document.getElementById('timer');
+            const resendLink = document.getElementById('resendLink');
+            
+            let timeLeft = 3 * 60; // 3 minutes
+            
+            const updateTimer = () => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    timerEl.style.display = 'none';
+                    resendLink.style.display = 'inline';
+                } else {
+                    timeLeft--;
+                }
+            };
+            
+            // Initial call and start interval
+            updateTimer();
+            const timerId = setInterval(updateTimer, 1000);
+            
+            // Handle resend OTP
+            resendLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Here you would typically make an API call to resend the OTP
+                // For demo purposes, we'll just reset the timer
+                timeLeft = 3 * 60;
+                timerEl.style.display = 'inline';
+                resendLink.style.display = 'none';
+                updateTimer();
+                setInterval(updateTimer, 1000);
+                
+                // Clear inputs
+                otpInputs.forEach(input => {
+                    input.value = '';
+                });
+                otpInputs[0].focus();
+                
+                // Show notification
+                alert('A new OTP has been sent to your mobile number');
+            });
+        });
+    </script>
+</body>
+</html> 
