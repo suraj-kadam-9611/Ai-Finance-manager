@@ -51,4 +51,4 @@ python main.py
 
 ---
 
-**Made with ❤️ by Suraj Kadam**
+**Made by Suraj Kadam**
