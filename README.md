@@ -1,4 +1,4 @@
-# 💰 AI-Based Personal Finance Manager
+# 💰 AI-Based Personal Finance Manager ( In Beta Version)
 
 An AI-powered personal finance manager that helps users track expenses, set goals, and get smart financial recommendations based on their spending patterns.
 
